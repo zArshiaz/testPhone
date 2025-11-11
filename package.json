@@ -10,9 +10,7 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
-    "google-tts-api": "^2.0.2",
     "open": "^10.2.0",
-    "play-sound": "^1.1.6",
-    "say": "^0.16.0"
+    "play-sound": "^1.1.6"
   }
 }
