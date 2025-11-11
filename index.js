@@ -3,14 +3,14 @@ const require = createRequire(import.meta.url);
 const player = require("play-sound")();
 import open from "open";
 
-const min = 1;
+const min = 2;
 let count = 0;
 
 let token;
 const captcha ="03AIIukzi82j6kHP4CFcC_MIbaoGWKdkj3Akd_acQBULo9pjPIltV1ewSmMsetwp2tWd3b9g1i7CYhU3vK0_7_QzCytARHPEVQrUQiqDaK1CO5nJ99XwmuLVTj1cq7mnw5Z9WZEFXVy__Vi_useYMNExNcpb-fk3jTTv-Tx7xdJWZepo6K0LLPPlujjs4GKXMJn39q4EDGJafJ-RMLg9QzVbEZaBJKeZEertRyrnqMR-cvxHtRtrLhGhHLYEq9P5sijxE9dtt7ecuBtPUr68uuQaNG8zxIK3Lw3JQEBYtwcyLlEyvpTLXaQvgK6JyyY_AKVK4HspDHMjZLmZQipMAF92mDipgtshqebWwbdxS1D99dDPBznA3QvsXIL1yZ97s37L9ZvWlygOekEr7bMCNHbsvBF_VlsGrnWTP2NcQbWNv2E-WQEGs1Jwx2zet-dAlEHXlNYw_AjlhNa_b0GHpY2ttfLFr9WJWtZfg1lTvZo4gkOCXOEIi01htol0cGyG19kXMTivBn3WcQ";
 const BOT_TOKEN = "8437775272:AAHCepVyenCQJ2NEvHMmGML0O9I29GvYA-c";
 const CHAT_ID = "5934186312";
-sendTelegram("کدت اجرا شد");
+sendTelegram(`کد هر ${min} دقیقه یبار اجرا میشه `);
 
 function createApiToken(captcha, bearerToken) {
   const myHeaders = new Headers();
