@@ -152,7 +152,7 @@ async function checkNumbers(bundle) {
         if (!bundle.regex.test(phone)) {
           console.log(`Match found (${bundle.name}):`, phone);
           sendTelegram(
-            '<a href="https://simcardstore.aptel.ir/simstore/html/landing.html">بریم</a> بدو شماره جدید اومد'
+            ' _بدو شماره جدید اومد<a href="https://simcardstore.aptel.ir/simstore/html/landing.html">بریم</a>'
           ).catch((e) => console.error(e));
           open("https://simcardstore.aptel.ir/simstore/html/landing.html");
           player.play("sound/ok.mp3", (err) => {
@@ -174,6 +174,10 @@ async function checkNumbers(bundle) {
           if (e) console.error("Sound error:", e);
         });
         await sendTelegram("کدت خطا خورد");
+         if (intervals[bundle.name]) {
+            clearInterval(intervals[bundle.name]);
+            sendTelegram(`اینترول ${bundle.name} حذف شد`);
+          }
       }
 
       if (allowRetry) {
