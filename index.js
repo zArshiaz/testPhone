@@ -32,7 +32,8 @@ function createApiToken(captcha, bearerToken) {
   return fetch(
     "https://services.negintel.com/api/public/Security/CreateAPITokenBySession",
     requestOptions
-  ).then((response) => response.json())
+  )
+    .then((response) => response.json())
     .then((d) => d.Result.token)
     .catch((error) => {
       console.error("createApiToken error:", error);
@@ -157,7 +158,10 @@ async function checkNumbers(bundle) {
           player.play("sound/ok.mp3", (err) => {
             if (err) console.error("Sound error:", err);
           });
-          if (intervals[bundle.name]) clearInterval(intervals[bundle.name]);
+          if (intervals[bundle.name]) {
+            clearInterval(intervals[bundle.name]);
+            sendTelegram(`اینترول ${bundle.name} حذف شد`);
+          }
           return;
         }
       }
@@ -165,11 +169,12 @@ async function checkNumbers(bundle) {
     } catch (err) {
       console.error(`Request failed for ${bundle.name}:`, err);
 
-      player.play("sound/err.mp3", (e) => {
-        if (e) console.error("Sound error:", e);
-      });
-
-      await sendTelegram("کدت خطا خورد");
+      if (!allowRetry) {
+        player.play("sound/err.mp3", (e) => {
+          if (e) console.error("Sound error:", e);
+        });
+        await sendTelegram("کدت خطا خورد");
+      }
 
       if (allowRetry) {
         await refreshToken();
@@ -177,7 +182,6 @@ async function checkNumbers(bundle) {
       }
     }
   }
-
 
   await attemptFetch(true);
 }
