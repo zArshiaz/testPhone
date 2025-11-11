@@ -3,11 +3,43 @@ const require = createRequire(import.meta.url);
 const player = require("play-sound")();
 import open from "open";
 
+const min = 1;
+let count = 0;
+
+let token;
+const captcha ="03AIIukzi82j6kHP4CFcC_MIbaoGWKdkj3Akd_acQBULo9pjPIltV1ewSmMsetwp2tWd3b9g1i7CYhU3vK0_7_QzCytARHPEVQrUQiqDaK1CO5nJ99XwmuLVTj1cq7mnw5Z9WZEFXVy__Vi_useYMNExNcpb-fk3jTTv-Tx7xdJWZepo6K0LLPPlujjs4GKXMJn39q4EDGJafJ-RMLg9QzVbEZaBJKeZEertRyrnqMR-cvxHtRtrLhGhHLYEq9P5sijxE9dtt7ecuBtPUr68uuQaNG8zxIK3Lw3JQEBYtwcyLlEyvpTLXaQvgK6JyyY_AKVK4HspDHMjZLmZQipMAF92mDipgtshqebWwbdxS1D99dDPBznA3QvsXIL1yZ97s37L9ZvWlygOekEr7bMCNHbsvBF_VlsGrnWTP2NcQbWNv2E-WQEGs1Jwx2zet-dAlEHXlNYw_AjlhNa_b0GHpY2ttfLFr9WJWtZfg1lTvZo4gkOCXOEIi01htol0cGyG19kXMTivBn3WcQ";
 const BOT_TOKEN = "8437775272:AAHCepVyenCQJ2NEvHMmGML0O9I29GvYA-c";
 const CHAT_ID = "5934186312";
-sendTelegram("کدت اجرا شد").catch((e) => console.error(e));
+sendTelegram("کدت اجرا شد");
 
-const min = 2;
+function createApiToken(captcha, bearerToken) {
+  const myHeaders = new Headers();
+  myHeaders.append("Accept", "*/*");
+  myHeaders.append("Accept-Language", "en-US,en;q=0.9");
+  if (bearerToken) myHeaders.append("Authorization", `Bearer ${bearerToken}`);
+  myHeaders.append("Connection", "keep-alive");
+  myHeaders.append("Content-Type", "application/json; charset=UTF-8");
+
+  const raw = JSON.stringify({ captcha });
+
+  const requestOptions = {
+    method: "POST",
+    headers: myHeaders,
+    body: raw,
+    redirect: "follow",
+  };
+
+  return fetch(
+    "https://services.negintel.com/api/public/Security/CreateAPITokenBySession",
+    requestOptions
+  ).then((response) => response.json())
+    .then((d) => d.Result.token)
+    .catch((error) => {
+      console.error("createApiToken error:", error);
+      throw error;
+    });
+}
+
 async function sendTelegram(text) {
   const url = `https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`;
   const payload = {
@@ -27,11 +59,24 @@ async function sendTelegram(text) {
   return data;
 }
 
-const headers = new Headers({
-  "Content-Type": "application/json; charset=UTF-8",
-  Authorization:
-    "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1bmlxdWVfbmFtZSI6IjI5NjExNzg4Nzc2NTQzNTY2NjY0NzY4NTU2MTIxMSIsIklkIjoiMzQ4MjI2MjE1NTc3OTY5MjQ2NjcyMjQzMjkzMzY1Iiwicm9sZSI6Ik9UUFZhbGlkYXRlZCIsIm5iZiI6MTc2Mjg4MjkwNywiZXhwIjoxNzYyODkzNzA3LCJpYXQiOjE3NjI4ODI5MDd9.JBlV0XgWwHKYSlcgLY5snxdhttJUmTzG86S-Q80b5n4",
-});
+async function refreshToken() {
+  try {
+    console.log("Refreshing API token...");
+    const newToken = await createApiToken(captcha, "");
+    if (newToken) {
+      token = newToken;
+      console.log("Token refreshed.");
+      await sendTelegram("توکن جدید ساخته شد");
+    } else {
+      console.warn("createApiToken returned falsy result.");
+    }
+  } catch (e) {
+    console.error("Failed to refresh token:", e);
+    try {
+      await sendTelegram("خطا در ساخت توکن جدید");
+    } catch (_) {}
+  }
+}
 
 const bundles = [
   {
@@ -65,60 +110,96 @@ const intervals = {};
 let soundPlaying = false;
 
 async function checkNumbers(bundle) {
-  try {
-    const response = await fetch(
-      "https://services.negintel.com/api/newConnection/MSISDN/QueryMSISDNByBundleSalesSimId",
-      {
-        method: "POST",
-        headers,
-        body: JSON.stringify({
-          searchconfigmodel: {
-            sort: "",
-            filter: "*******",
-            entriesperpage: 20,
-            page: 0,
-            totalrowcount: 0,
-          },
-          planid: 30306,
-          bundlesalessimid: bundle.bundlesalessimid,
-        }),
+  count += 1;
+  console.log("count fetch: ", count);
+
+  async function attemptFetch(allowRetry = true) {
+    try {
+      const headers = {
+        "Content-Type": "application/json; charset=UTF-8",
+        Authorization: `Bearer ${token || ""}`,
+      };
+
+      const response = await fetch(
+        "https://services.negintel.com/api/newConnection/MSISDN/QueryMSISDNByBundleSalesSimId",
+        {
+          method: "POST",
+          headers,
+          body: JSON.stringify({
+            searchconfigmodel: {
+              sort: "",
+              filter: "*******",
+              entriesperpage: 20,
+              page: 0,
+              totalrowcount: 0,
+            },
+            planid: 30306,
+            bundlesalessimid: bundle.bundlesalessimid,
+          }),
+        }
+      );
+
+      if (!response.ok) {
+        const statusText = `${response.status} ${response.statusText}`;
+        throw new Error(`HTTP ${statusText}`);
       }
-    ).catch((e) => console.log(e.message));
 
-    if (!response.ok) throw new Error(response);
+      const result = await response.json();
+      const phones = result?.Result?.map((d) => d.msisdn) || [];
 
-    const result = await response.json();
-    const phones = result?.Result?.map((d) => d.msisdn) || [];
-    console.log(bundle.name, "--", phones, new Date().toTimeString());
+      for (let phone of phones) {
+        if (!bundle.regex.test(phone)) {
+          console.log(`Match found (${bundle.name}):`, phone);
+          sendTelegram(
+            '<a href="https://simcardstore.aptel.ir/simstore/html/landing.html">بریم</a> بدو شماره جدید اومد'
+          ).catch((e) => console.error(e));
+          open("https://simcardstore.aptel.ir/simstore/html/landing.html");
+          player.play("sound/ok.mp3", (err) => {
+            if (err) console.error("Sound error:", err);
+          });
+          if (intervals[bundle.name]) clearInterval(intervals[bundle.name]);
+          return;
+        }
+      }
+      console.log(`No match for ${bundle.name}`);
+    } catch (err) {
+      console.error(`Request failed for ${bundle.name}:`, err);
 
-    for (let phone of phones) {
-      if (!bundle.regex.test(phone)) {
-        console.log(`Match found (${bundle.name}):`, phone);
-        sendTelegram(
-          '<a href="https://simcardstore.aptel.ir/simstore/html/landing.html">بریم</a> بدو شماره جدید اومد'
-        );
-        open("https://simcardstore.aptel.ir/simstore/html/landing.html");
-        player.play("sound/ok.mp3", (err) => {
-          if (err) console.error("Sound error:", err);
-        });
-        if (intervals[bundle.name]) clearInterval(intervals[bundle.name]);
-        return;
+      player.play("sound/err.mp3", (e) => {
+        if (e) console.error("Sound error:", e);
+      });
+
+      await sendTelegram("کدت خطا خورد");
+
+      if (allowRetry) {
+        await refreshToken();
+        return attemptFetch(false);
       }
     }
-    console.log(`No match for ${bundle.name}`);
-  } catch (err) {
-    console.error(`Request failed for ${bundle.name}:`, err);
-    sendTelegram("کدت خطا خورد").catch((e) => console.error(e));
-    player.play("sound/err.mp3", (err) => {
-      if (err) console.error(err);
-    });
   }
+
+
+  await attemptFetch(true);
 }
 
-bundles.forEach((bundle, index) => {
-  setTimeout(() => checkNumbers(bundle), index * 3000);
+async function init() {
+  try {
+    token = await createApiToken(captcha, "");
+    console.log("Initial token acquired.");
+  } catch (e) {
+    console.error("Initial token acquisition failed:", e);
+  }
 
-  setTimeout(() => {
-    setInterval(() => checkNumbers(bundle), min * 60 * 1000);
-  }, index * 3000);
-});
+  bundles.forEach((bundle, index) => {
+    setTimeout(() => checkNumbers(bundle), index * 3000);
+
+    setTimeout(() => {
+      intervals[bundle.name] = setInterval(
+        () => checkNumbers(bundle),
+        min * 60 * 1000
+      );
+    }, index * 3000);
+  });
+}
+
+init();
