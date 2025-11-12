@@ -5,11 +5,10 @@ import open from "open";
 
 const min = 2;
 let count = 0;
-
 let token;
 const captcha ="03AIIukzi82j6kHP4CFcC_MIbaoGWKdkj3Akd_acQBULo9pjPIltV1ewSmMsetwp2tWd3b9g1i7CYhU3vK0_7_QzCytARHPEVQrUQiqDaK1CO5nJ99XwmuLVTj1cq7mnw5Z9WZEFXVy__Vi_useYMNExNcpb-fk3jTTv-Tx7xdJWZepo6K0LLPPlujjs4GKXMJn39q4EDGJafJ-RMLg9QzVbEZaBJKeZEertRyrnqMR-cvxHtRtrLhGhHLYEq9P5sijxE9dtt7ecuBtPUr68uuQaNG8zxIK3Lw3JQEBYtwcyLlEyvpTLXaQvgK6JyyY_AKVK4HspDHMjZLmZQipMAF92mDipgtshqebWwbdxS1D99dDPBznA3QvsXIL1yZ97s37L9ZvWlygOekEr7bMCNHbsvBF_VlsGrnWTP2NcQbWNv2E-WQEGs1Jwx2zet-dAlEHXlNYw_AjlhNa_b0GHpY2ttfLFr9WJWtZfg1lTvZo4gkOCXOEIi01htol0cGyG19kXMTivBn3WcQ";
-const BOT_TOKEN = "8437775272:AAHCepVyenCQJ2NEvHMmGML0O9I29GvYA-c";
-const CHAT_ID = "5934186312";
+const BOT_TOKEN = "1981233539:9lTQs6eO-xC1lgRdj3Wb_69yN4riL23hyA4";
+const CHAT_ID = "1038621242";
 sendTelegram(`کد هر ${min} دقیقه یبار اجرا میشه `);
 
 function createApiToken(captcha, bearerToken) {
@@ -42,12 +41,10 @@ function createApiToken(captcha, bearerToken) {
 }
 
 async function sendTelegram(text) {
-  const url = `https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`;
+  const url = `https://tapi.bale.ai/bot${BOT_TOKEN}/sendMessage`;
   const payload = {
     chat_id: CHAT_ID,
-    text,
-    parse_mode: "HTML",
-  };
+    text  };
 
   const res = await fetch(url, {
     method: "POST",
